@@ -48,6 +48,9 @@ const BOTAO_INICIA_JOGO = "btnIniciaJogo";
 /** Identificador do botão de fazer uma nova tentativa. */
 const BOTAO_FAZ_TENTATIVA = "btnFazTentativa";
 
+// Identifucador do botao oara cancelar o jogo
+const BOTAO_CANCELA_JOGO = "btnCancelaJogo";
+
 /* ------------------------------------------------------------------------- */
 
 /** Identificador do parágrafo da mensagem de boas vindas. */
@@ -63,6 +66,14 @@ const RESULTADO_ABAIXO = "Demasiado baixo";
 
 /** Valor da tentativa ficou acima do número aleatório. */
 const RESULTADO_ACIMA = "Demasiado alto";
+
+// Jogo cancelado
+const RESULTADO_CANCELOU = "O jogo foi cancelado";
+
+/* ------------------------------------------------------------------------- */
+
+// Tempo em jogo
+const SPAN_TEMPO_JOGO = "spanTempoJogo";
 
 /* ------------------------------------------------------------------------- */
 /*                                                         VARIÁVEIS GLOBAIS */
@@ -93,7 +104,10 @@ let jogo = {
    * Array com todas as tentativas de adivinhar o número por parte do
    * utilizador. A última tentativa está no final do array.
    */
-  tentativas: null
+  tentativas: null,
+
+  // definie o inicio do contador de tempo do jogo
+  inicio: null
 };
 
 /* ------------------------------------------------------------------------- */
@@ -171,6 +185,9 @@ function defineEventListenersParaElementosHTML() {
 
   document.getElementById(BOTAO_FAZ_TENTATIVA).
     addEventListener("click", fazTentativa);
+
+  document.getElementById(BOTAO_CANCELA_JOGO).
+    addEventListener("click", cancelaJogo);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -371,6 +388,12 @@ function iniciaJogo() {
                                configuracao.maximoAleatorio);
   jogo.tentativas = [];
 
+  // Inicializa o valor do tempo de início do jogo
+  jogo.inicio = Math.floor(Date.now() / 1000);
+
+  // Inicia o temporizador periódico para mostrar o tempo de jogo
+  temporizadorTempoJogo = setInterval(mostraTempoJogo, 1000);
+
   // Podem estar a ser mostradas tentativas anteriores se este não for o
   // primeiro jogo, as quais devem ser removidas da tabela para se poder
   // começar o novo jogo.
@@ -378,8 +401,14 @@ function iniciaJogo() {
 
   // Permite que o utilizador faça tentativas para adivinhar o número.
   document.getElementById(BOTAO_FAZ_TENTATIVA).disabled = false;
+  document.getElementById(BOTAO_CANCELA_JOGO).disabled = false;
 }
 
+/* ------------------------------------------------------------------------- */
+function cancelaJogo() {
+
+  terminaJogo(RESULTADO_CANCELOU);
+}
 /* ------------------------------------------------------------------------- */
 
 /**
@@ -398,6 +427,7 @@ function terminaJogo(resultado) {
 
   // Neste jogo não é possível fazer mais tentativas para adivinhar o número.
   document.getElementById(BOTAO_FAZ_TENTATIVA).disabled = true;
+  document.getElementById(BOTAO_CANCELA_JOGO).disabled = true;
 
   // Apresenta a mensagem de resultado do jogo ao utilizador.
   switch (resultado) {
@@ -405,6 +435,11 @@ function terminaJogo(resultado) {
     case RESULTADO_ACERTOU:
       mensagemResultadoJogo =
         "Acertou! Era mesmo o número " + valorTentativaFinal + ".";
+      break;
+
+    case RESULTADO_CANCELOU:
+      mensagemResultadoJogo = 
+        "O jogo foi cancelado.";
       break;
 
     default:
@@ -439,3 +474,15 @@ function geraNumeroInteiroAleatorio(minimo = MINIMO_ALEATORIO_OMISSAO,
 }
 
 /* ------------------------------------------------------------------------- */
+
+function mostraTempoJogo () {
+
+  let tempoDecorrido = Math.floor(Date.now() / 1000) - jogo.inicio;
+
+  SPAN_TEMPO_JOGO = tempoDecorrido;
+
+  if(terminaJogo()){
+     // Pare o temporizador periodico do medidor de tempo
+  clearInterval(temporizadorTempoJogo);
+  }
+}
