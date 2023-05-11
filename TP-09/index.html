@@ -20,7 +20,7 @@
     <!-- Este parágrafo vai ser útil para o browser colocar uma mensagem -->
     <!-- assim que tiver terminado o carregamento deste documento HTML.  -->
     <p id="pMensagem"></p>
-    <p> O jogo decorre há <span id="spanTempoJogo">0</span> segundos</p>
+    
   </header>
 
   <!-- ==================================================================== -->
@@ -55,10 +55,18 @@
         <td><button id="btnPedeMaximoAleatorio">Mudar</button></td>
       </tr>
 
+      <tr>
+        <td>Maxima duração do jogo</td>
+        <td id="tdDuracaoMaxima"></td>
+        <td><button id="btnPedeDuracaoMaxima">Mudar</button></td>
+      </tr>
+
     </table>
 
     <p><button id="btnIniciaJogo">Gerar um número aleatório e
                                   começar um jogo</button></p>
+
+    <p><button id="btnCancelaJogo" disabled>Cancelar o Jogo</button></p>
 
   </section>
 
@@ -76,11 +84,13 @@
       </tr>
     </table>
 
+    <p> O jogo decorre há <span id="spanTempoJogo">0</span> segundos.</p>
+    <p> Tem mais <span id="spanTempoRestante">0</span> segundos para jogar.</p>
+
+
     <p><button id="btnFazTentativa" disabled>Fazer uma nova
                tentativa para adivinhar o número</button></p>
-
-    <p><button id="btnCancelaJogo" disabled>Cancelar o Jogo</button></p>
-
+    
   </section>
 
 </body>

@@ -20,6 +20,12 @@ const MINIMO_ALEATORIO_OMISSAO = 1;
 /** Valor aleatório máximo por omissão. */
 const MAXIMO_ALEATORIO_OMISSAO = 100;
 
+// Valor duracao maxima por omissao
+const DURACAO_MAXIMA_OMISSAO = 60;
+
+// Valorduracao minima por omissao
+const DURACAO_MINIMA = 10;
+
 /* ------------------------------------------------------------------------- */
 
 /** Célula que guarda o número de tentativas na tabela de configuração. */
@@ -30,6 +36,12 @@ const TD_MINIMO_ALEATORIO = "tdMinimoAleatorio";
 
 /** Célula que guarda o valor aleatório máximo na tabela de configuração. */
 const TD_MAXIMO_ALEATORIO = "tdMaximoAleatorio";
+
+// Celula que guarda o valor max tempo
+const TD_DURACAO_MAXIMA = "tdDuracaoMaxima";
+
+// celila que guarda o valor min tempo
+const TD_DURACAO_MINIMA = "tdDuracaoMinima";
 
 /* ------------------------------------------------------------------------- */
 
@@ -48,8 +60,11 @@ const BOTAO_INICIA_JOGO = "btnIniciaJogo";
 /** Identificador do botão de fazer uma nova tentativa. */
 const BOTAO_FAZ_TENTATIVA = "btnFazTentativa";
 
-// Identifucador do botao oara cancelar o jogo
+// Identificador do botao para cancelar o jogo
 const BOTAO_CANCELA_JOGO = "btnCancelaJogo";
+
+// Identificador do botao para mudar o valor max tempo
+const BOTAO_DURACAO_MAXIMA = "btnPedeDuracaoMaxima";
 
 /* ------------------------------------------------------------------------- */
 
@@ -75,6 +90,9 @@ const RESULTADO_CANCELOU = "O jogo foi cancelado";
 // Tempo em jogo
 const SPAN_TEMPO_JOGO = "spanTempoJogo";
 
+// Temo restante do jogo
+const SPAN_TEMPO_RESTANTE = "spanTempoRestante";
+
 /* ------------------------------------------------------------------------- */
 /*                                                         VARIÁVEIS GLOBAIS */
 /* ------------------------------------------------------------------------- */
@@ -89,7 +107,13 @@ let configuracao = {
   minimoAleatorio: MINIMO_ALEATORIO_OMISSAO,
 
   /** Valor aleatório máximo. */
-  maximoAleatorio: MAXIMO_ALEATORIO_OMISSAO
+  maximoAleatorio: MAXIMO_ALEATORIO_OMISSAO,
+
+  // Valor tempo MAX
+  duracaoMaxima: DURACAO_MAXIMA_OMISSAO,
+
+  // Valor tempo MIN
+  duracaoMinima: DURACAO_MINIMA
 };
 
 /* ------------------------------------------------------------------------- */
@@ -119,6 +143,14 @@ let jogo = {
 // Uma vantagem de usar addEventListener() em vez de window.onload é serem
 // permitidos vários event listeners (funções invocadas) para um mesmo evento.
 window.addEventListener("load", principal);
+
+/* ------------------------------------------------------------------------- */
+
+let temporizadorTempoJogo = null;
+
+let temporizadorTempoRestante = null;
+
+let temporizadorDuracaoMaxima = null;
 
 /* ------------------------------------------------------------------------- */
 
@@ -158,8 +190,9 @@ function mostraConfiguracaoJogo() {
   // Exercício: Colocar aqui o código em falta.
   document.getElementById(TD_MAXIMO_ALEATORIO).innerHTML =
     configuracao.maximoAleatorio;
-
-
+  document.getElementById(TD_DURACAO_MAXIMA).innerHTML = 
+    configuracao.duracaoMaxima;
+ 
 }
 
 /* ------------------------------------------------------------------------- */
@@ -188,6 +221,9 @@ function defineEventListenersParaElementosHTML() {
 
   document.getElementById(BOTAO_CANCELA_JOGO).
     addEventListener("click", cancelaJogo);
+
+  document.getElementById(BOTAO_DURACAO_MAXIMA).
+    addEventListener("click", pedeDuracaoMaxima);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -227,6 +263,15 @@ function pedeMaximoAleatorio() {
 
   // Exercício: Colocar aqui o código da função.
   configuracao.maximoAleatorio = pedeNumeroInteiro(configuracao.minimoAleatorio,Infinity);
+
+  mostraConfiguracaoJogo();
+}
+
+/* ------------------------------------------------------------------------- */
+
+function pedeDuracaoMaxima() {
+
+  configuracao.duracaoMaxima = pedeNumeroInteiro(DURACAO_MINIMA,Infinity);
 
   mostraConfiguracaoJogo();
 }
@@ -383,6 +428,7 @@ function iniciaJogo() {
   // Exercício: Colocar aqui o código em falta.
   document.getElementById(BOTAO_MAXIMO_ALEATORIO).disabled = true;
   // Inicialização do estado do jogo.
+  document.getElementById(BOTAO_DURACAO_MAXIMA).disabled = true;
   jogo.numeroAleatorio =
     geraNumeroInteiroAleatorio(configuracao.minimoAleatorio,
                                configuracao.maximoAleatorio);
@@ -391,8 +437,14 @@ function iniciaJogo() {
   // Inicializa o valor do tempo de início do jogo
   jogo.inicio = Math.floor(Date.now() / 1000);
 
+  mostraTempoJogo();
+
   // Inicia o temporizador periódico para mostrar o tempo de jogo
   temporizadorTempoJogo = setInterval(mostraTempoJogo, 1000);
+  temporizadorTempoRestante = setInterval(mostraTempoRestante, 1000);
+  temporizadorDuracaoMaxima = setTimeout(cancelaJogo,(configuracao.duracaoMaxima)*1000);
+
+  mostraTempoRestante();
 
   // Podem estar a ser mostradas tentativas anteriores se este não for o
   // primeiro jogo, as quais devem ser removidas da tabela para se poder
@@ -454,6 +506,12 @@ function terminaJogo(resultado) {
   document.getElementById(BOTAO_MINIMO_ALEATORIO).disabled = false;
   document.getElementById(BOTAO_MAXIMO_ALEATORIO).disabled = false;
   document.getElementById(BOTAO_INICIA_JOGO).disabled = false;
+  document.getElementById(BOTAO_DURACAO_MAXIMA).disabled = false;
+
+  // Pare o temporizador periodico do medidor de tempo
+  clearInterval(temporizadorTempoJogo);
+  clearInterval(temporizadorTempoRestante);
+  clearTimeout(temporizadorDuracaoMaxima);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -479,10 +537,13 @@ function mostraTempoJogo () {
 
   let tempoDecorrido = Math.floor(Date.now() / 1000) - jogo.inicio;
 
-  SPAN_TEMPO_JOGO = tempoDecorrido;
+  document.getElementById(SPAN_TEMPO_JOGO).innerHTML = tempoDecorrido;
 
-  if(terminaJogo()){
-     // Pare o temporizador periodico do medidor de tempo
-  clearInterval(temporizadorTempoJogo);
-  }
+}
+
+function mostraTempoRestante() {
+
+  let tempoEmFalta = configuracao.duracaoMaxima - (Math.floor(Date.now()/1000) - jogo.inicio);
+
+  document.getElementById(SPAN_TEMPO_RESTANTE).innerHTML = tempoEmFalta;
 }
